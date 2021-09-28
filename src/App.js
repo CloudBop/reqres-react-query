@@ -33,15 +33,13 @@ function App() {
   // get lots of users
   const { data: userData, isLoading, error, refetch } = useQuery('users', fetchUsers)
   // addUset mutation
-  const { mutate, mutateAsync, isLoading: isLoadingAddUser, error: errorAddUser, } = useMutation(addUser, {
-    onSuccess: (data, variables, ctx) => {
-      console.log(`data`, data)
-
-
-      // this won't work with this fake api!!!
-      // refetch();
-    }
-  });
+  const { mutate, mutateAsync, isLoading: isLoadingAddUser, error: errorAddUser, } = useMutation(addUser);
+  const handleAddUser = async () => {
+    const data = await mutateAsync({ first_name: "react-query", last_name: "rulz" });
+    console.log(`async mutation`)
+    console.log(`data`, data)
+    refetch();
+  }
 
   if (isLoading) return <p> Loading... </p>
   if (error || errorAddUser) return <p> Something went wrong. </p>
@@ -51,7 +49,7 @@ function App() {
       <h1>react-query experiments with resres.in</h1>
       <p> Here's some info: </p> <a href="https://reqres.in/" className="outbound"> reqres.in</a>
 
-      <button onClick={() => mutate({ first_name: "react-query", last_name: "rulz" })} className="button">
+      <button onClick={() => handleAddUser()} className="button">
         add user
       </button>
 
