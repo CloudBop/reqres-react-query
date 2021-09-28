@@ -32,9 +32,14 @@ const addUser = async user => {
 };
 
 function App() {
+  const enableQuery = true;
   const queryClient = useQueryClient()
   // get lots of users
-  const { data: userData, isLoading, error } = useQuery('users', fetchUsers)
+  const { data: userData, isLoading, error } = useQuery('users', fetchUsers, {
+    enabled: enableQuery,
+    refetchOnWindowFocus: false,
+    refetchInterval: 1000 * 60
+  })
   // addUset mutation
   const { mutate, mutateAsync, isLoading: isLoadingAddUser, error: errorAddUser, } = useMutation(addUser);
   const handleAddUser = async () => {
