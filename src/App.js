@@ -1,11 +1,13 @@
 import {
-  useQuery, useMutation, useQueryClient
+  useInfiniteQuery, useMutation, useQueryClient
 } from 'react-query';
 import './App.css';
 
 // must return promise or react-query won't like it.
-const fetchUsers = async () => {
-  const response = await fetch('https://reqres.in/api/users');
+const fetchInfiniteUsers = async (
+  // arg returned from getNextPageParam
+  { pageParam = 1 }) => {
+  const response = await fetch(`https://reqres.in/api/users?page=${pageParam}`);
   if (!response.ok) {
     throw new Error('Something went wrong!');
   }
@@ -34,7 +36,13 @@ const addUser = async user => {
 function App() {
   const queryClient = useQueryClient()
   // get lots of users
-  const { data: userData, isLoading, error } = useQuery('users', fetchUsers)
+  const { data: userData, isLoading, isFetching, error, hasNextPage, fetchNextPage } = useInfiniteQuery('users', fetchInfiniteUsers, {
+    getNextPageParam: (lastPage, pages) => {
+      if (lastPage.page < lastPage.total_pages) return lastPage.page + 1;
+      return false;
+    }
+  })
+
   // addUset mutation
   const { mutate, mutateAsync, isLoading: isLoadingAddUser, error: errorAddUser, } = useMutation(addUser);
   const handleAddUser = async () => {
@@ -64,10 +72,13 @@ function App() {
 
       {isLoadingAddUser ? <p>Adding user...</p> : null}
       {
-        userData.data.map(({ id, first_name, last_name }) => {
-          return <p key={id}> {first_name + " " + last_name} </p>
-        })
+        userData.pages.map(page =>
+          page.data.map(({ id, first_name, last_name }) => {
+            return <p key={id}> {first_name + " " + last_name} </p>
+          }))
       }
+      {isFetching ? <p>Adding user...</p> : null}
+      {hasNextPage ? <button onClick={fetchNextPage}>load more users...</button> : null}
     </div>
   );
 }
