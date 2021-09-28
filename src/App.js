@@ -1,4 +1,6 @@
-import { useQuery, useMutation } from 'react-query';
+import {
+  useQuery, useMutation, useQueryClient
+} from 'react-query';
 import './App.css';
 
 // must return promise or react-query won't like it.
@@ -30,15 +32,22 @@ const addUser = async user => {
 };
 
 function App() {
+  const queryClient = useQueryClient()
   // get lots of users
-  const { data: userData, isLoading, error, refetch } = useQuery('users', fetchUsers)
+  const { data: userData, isLoading, error } = useQuery('users', fetchUsers)
   // addUset mutation
   const { mutate, mutateAsync, isLoading: isLoadingAddUser, error: errorAddUser, } = useMutation(addUser);
   const handleAddUser = async () => {
-    const data = await mutateAsync({ first_name: "react-query", last_name: "rulz" });
+    const newUser = await mutateAsync({ first_name: "react-query", last_name: "rulz" });
     console.log(`async mutation`)
-    console.log(`data`, data)
-    refetch();
+    console.log(`newUser`, newUser)
+    // invalidate + refecth - wont work on fake api
+    // queryClient.invalidateQueries('users');
+    //  update cached data
+    queryClient.setQueryData('users', oldData => ({
+      ...oldData,
+      data: [newUser, ...oldData.data]
+    }));
   }
 
   if (isLoading) return <p> Loading... </p>
